@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 아이엘 딥코 미니 강사 연수 설문</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* 머티리얼 디자인 스타일 CSS */
+    body {
+      font-family: 'Roboto', 'Noto Sans KR', sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .card {
+      background: white;
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 500px;
+    }
+    .card h2 {
+      margin-top: 0;
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #666;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #1a73e8; /* 구글 블루 */
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+    .btn-submit {
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    .btn-submit:hover {
+      background-color: #1557b0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .btn-submit:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    /* 로딩 및 메시지 표시 영역 */
+    #statusMessage {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .success { color: #0f9d58; }
+    .error { color: #d23f31; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>강사 연수 사전 설문</h2>
+    <form id="surveyForm">
+      
+      <div class="form-group">
+        <label for="name">이름</label>
+        <input type="text" id="name" class="form-control" placeholder="홍길동" required>
+      </div>
+
+      <div class="form-group">
+        <label for="category">질문 카테고리</label>
+        <select id="category" class="form-control" required>
+          <option value="" disabled selected>카테고리를 선택해주세요</option>
+          <option value="딥코 미니">딥코 미니</option>
+          <option value="딥코 스튜디오">딥코 스튜디오</option>
+          <option value="딥코 보드">딥코 보드</option>
+          <option value="기타 문의">기타 문의</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="question">질문 내용</label>
+        <textarea id="question" class="form-control" placeholder="궁금한 점을 자세히 적어주세요." required></textarea>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-submit">제출하기</button>
+      <div id="statusMessage"></div>
+    </form>
+  </div>
+
+  <script>
+    // [중요] 구글 앱스 스크립트 웹앱 배포 후 발급받은 URL을 여기에 넣으세요!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx4aLtvnPLCJlNIDp6yp2M9PRmnPk1TcrhErubQ1c2G5dU1yGPX5F2sTtqrwrcsDHkA0w/exec";
+
+    const form = document.getElementById('surveyForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault(); // 페이지 새로고침 방지
+
+      // 1. 입력된 데이터 가져오기
+      const name = document.getElementById('name').value;
+      const category = document.getElementById('category').value;
+      const question = document.getElementById('question').value;
+
+      // 2. 백엔드로 보낼 JSON 데이터 구조 만들기 (action 라우팅 포함)
+      const requestData = {
+        action: "submitSurvey",
+        payload: {
+          name: name,
+          category: category,
+          question: question
+        }
+      };
+
+      // 3. UI 상태 변경 (로딩 중)
+      submitBtn.disabled = true;
+      submitBtn.innerText = "제출 중...";
+      statusMessage.innerText = "";
+      statusMessage.className = "";
+
+      try {
+        // 4. fetch API를 사용해 GAS 백엔드로 데이터 전송
+        // CORS 에러 방지를 위해 Content-Type을 text/plain으로 설정합니다.
+        const response = await fetch(GAS_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8", 
+          },
+          body: JSON.stringify(requestData)
+        });
+
+        const result = await response.json();
+
+        // 5. 결과 처리
+        if (result.status === "success") {
+          statusMessage.innerText = result.message;
+          statusMessage.classList.add("success");
+          form.reset(); // 성공 시 폼 초기화
+        } else {
+          statusMessage.innerText = "오류: " + result.message;
+          statusMessage.classList.add("error");
+        }
+      } catch (error) {
+        console.error("Fetch Error:", error);
+        statusMessage.innerText = "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        statusMessage.classList.add("error");
+      } finally {
+        // 6. UI 상태 복구
+        submitBtn.disabled = false;
+        submitBtn.innerText = "제출하기";
+      }
+    });
+  </script>
+</body>
+</html>
